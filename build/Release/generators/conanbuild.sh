@@ -1,0 +1,1 @@
+. "/home/agustin/Documentos/Sistemas Operativos 1/prueba_firma_ssh/build/Release/generators/conanbuildenv-release-x86_64.sh"
