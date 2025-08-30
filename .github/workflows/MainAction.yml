@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
         
       - name: Install QA dependencies
-        uses: agus-alvarez-01/cache-apt-pkgs-action@latest 
+        uses: awalsh128/cache-apt-pkgs-action@latest 
         with:
           packges: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
           version: 1.0
