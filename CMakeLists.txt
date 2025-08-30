@@ -2,12 +2,12 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 # Create project
-project {
+project({
 	"ShellProject"
 	VERSION 1.0.0
 	DESCTIPTION "A nice shell project!"
 	LANGUEAGES C
-}
+})
 
 # Enable testing
 include(CTest)
