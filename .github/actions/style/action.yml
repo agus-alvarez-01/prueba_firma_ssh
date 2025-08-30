@@ -1,0 +1,32 @@
+name: Style Check
+description: "Check code style using clang-format"
+
+runs:
+  using: "composite"
+  steps: 
+    - name: "Run clang-format"
+      shell: bash
+      run: |
+        PROJECT_PATH=$(pwd)
+
+        SOURCE_FILES="$(find "$PROJECT_PATH/src" -type f \( -name "*.cpp" -o -name "*.c" \))"
+        SOURCE_FILES="$(find "$PROJECT_PATH/include" -type f \( -name "*.h" -o -name "*.hpp" \))"
+        # SOURCE_FILES+="$(find "$PROJECT_PATH/lib" -type f \( -name "*.h" -o -name "*.hpp" -o -name "*.c" -o -name "*.cpp"\))"
+
+        clang-format -n $SOURCE_FILES 2> clang-format-errors.txt
+
+        if [ -s clang-format-errors.txt ]; then
+          echo "Code style issues found:"
+          cat clang-format-errors.txt
+          exit 1
+        else
+          echo "No code style issues found."
+        fi
+
+    - name: "Upload"
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with: 
+        name: "clang-format-errors"
+        path: ./clang-format-errors.txt
+        retention-days: 3
