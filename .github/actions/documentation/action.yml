@@ -16,7 +16,7 @@ runs:
     - name : Run validation
       shell : bash
       run : |
-        ERROR_FILE="$(pwd)/doxygen_errors.log
+        ERROR_FILE="$(pwd)/doxygen_errors.log"
         doxygen -s Doxyfile.temp 2> $ERROR_FILE
 
         if [ -s $ERROR_FILE ]; then
