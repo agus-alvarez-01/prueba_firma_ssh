@@ -1,4 +1,4 @@
-name : "Documentation check"
+name : "Documentation"
 description : "Check the documentacion for the project"
 
 runs:
@@ -34,7 +34,7 @@ runs:
 
     - name : Upload Documentation
       if : failure()
-      uses : actions/upload-artifact@v3
+      uses : actions/upload-artifact@v4
       with :
         name : doxygen_errors
         path : ./doxygen_errors.log

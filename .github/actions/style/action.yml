@@ -1,4 +1,4 @@
-name: Style Check
+name: "Style"
 description: "Check code style using clang-format"
 
 runs:
@@ -24,7 +24,7 @@ runs:
         fi
 
     - name: "Upload"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with: 
         name: "clang-format-errors"

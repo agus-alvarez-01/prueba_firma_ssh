@@ -1,4 +1,4 @@
-name: "Build"
+name: "Building"
 description: "Compiles the project"
 
 runs:
