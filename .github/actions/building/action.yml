@@ -5,18 +5,23 @@ runs:
   using: "composite"
   steps:
     - name: Install Conan
+      shell: bash
       run: pip install conan
 
     - name: Configure Conan
+      shell: bash
       run: conan profile detect --force
 
     - name: Install dependencies
+      shell: bash
       run: conan install . --output-folder=build --build=missing
 
     - name: Configure CMake
+      shell: bash
       run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
 
     - name: Build
+      shell: bash
       run: cmake --build build
 
     - name: Install system dependencies
