@@ -14,15 +14,17 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: conan install . --output-folder=. --build=missing
+      run: conan install . --output-folder=build --build=missing
 
     - name: Configure CMake
       shell: bash
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake
+      run: cmake -B build -S . \
+                 -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake \
+                 -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       shell: bash
-      run: cmake --build build
+      run: cmake --build build --config Release
 
     - name: Install system dependencies
       shell: bash
@@ -37,20 +39,22 @@ runs:
         cd prometheus-client-c
         rm -rf promhttp
 
-    - name: Buillding and Installing prometheus
+    - name: Building and Installing prometheus
       shell: bash
       run: |
         cd prometheus-client-c/prom
         mkdir -p build 
         cd build
-        cmake ..
-        make
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
         sudo make install
-    - name: Building th main proyect
+
+    - name: Building the main project
       shell: bash
       run: |
         mkdir -p build
         cd build
-        cmake ..
-        make
-        sudo make install
+        cmake .. \
+          -DCMAKE_TOOLCHAIN_FILE=Release/generators/conan_toolchain.cmake \
+          -DCMAKE_BUILD_TYPE=Release
+        make -j$(nproc)
