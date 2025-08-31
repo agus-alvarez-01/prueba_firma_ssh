@@ -6,7 +6,9 @@ runs:
   steps:
     - name: Install system dependencies
       shell: bash
-      run: sudo apt-get install -y libmicrohttpd-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libmicrohttpd-dev libcjson-dev
 
     - name: Clone prometheus client
       shell: bash
