@@ -4,6 +4,21 @@ description: "Compiles the project"
 runs:
   using: "composite"
   steps:
+    - name: Install Conan
+      run: pip install conan
+
+    - name: Configure Conan
+      run: conan profile detect --force
+
+    - name: Install dependencies
+      run: conan install . --output-folder=build --build=missing
+
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake
+
+    - name: Build
+      run: cmake --build build
+
     - name: Install system dependencies
       shell: bash
       run: |
