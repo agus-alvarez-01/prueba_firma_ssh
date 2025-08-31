@@ -24,6 +24,6 @@ find_package(unity REQUIRED)
 
 # add_executable --> .exe/binary
 # add_library --> .o/.so/-sll STATIC SHARED
-add_executable(${PROJECT_NAME} src/main.c)
+add_executable(${PROJECT_NAME} src/hola.c)
 
 target_link_library(${PROJECT_NAME} PRIVATE cjson::cjson)
