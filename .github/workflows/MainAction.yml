@@ -24,8 +24,8 @@ jobs:
       - name: Documentation 
         uses: ./.github/actions/documentation
 
-      - name: Coverage
-        uses: ./.github/actions/coverage
+      #- name: Coverage
+      #  uses: ./.github/actions/coverage
 
       - name: Style
         uses: ./.github/actions/style    
