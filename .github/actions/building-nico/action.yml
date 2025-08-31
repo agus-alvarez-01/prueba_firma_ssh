@@ -31,5 +31,6 @@ runs:
       shell: bash
       run: |
         mkdir -p build
+        cd build
         cmake ..
         make 
