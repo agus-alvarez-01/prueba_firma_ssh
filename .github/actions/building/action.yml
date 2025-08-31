@@ -22,25 +22,30 @@ runs:
       shell: bash
       run: conan install . --output-folder=build --build=missing
 
-    - name: Build Prometheus client
-      shell: bash
-      run: |
-        git clone https://github.com/digitalocean/prometheus-client-c.git
-        cd prometheus-client-c/prom
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        make -j$(nproc)
-        sudo make install
-
     - name: Configure main project
       shell: bash
       run: |
         mkdir -p build
         cmake -S . -B build \
-              -DCMAKE_TOOLCHAIN_FILE=$(pwd)/build/generators/conan_toolchain.cmake \
+              -DCMAKE_TOOLCHAIN_FILE=$(pwd)/build/Release/generators/conan_toolchain.cmake \
               -DCMAKE_BUILD_TYPE=Release
 
     - name: Build main project
       shell: bash
       run: cmake --build build -- -j$(nproc)
+
+    - name: Clone prometheus client
+      shell: bash
+      run: |
+        git clone https://github.com/digitalocean/prometheus-client-c.git
+        cd prometheus-client-c
+        rm -rf promhttp
+
+    - name: Building and Installing Prometheus
+      shell: bash
+      run: |
+        cd prometheus-client-c/prom
+        mkdir -p build
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -- -j$(nproc)
+        sudo cmake --install build
