@@ -28,6 +28,7 @@ runs:
         mkdir -p build
         cmake -S . -B build \
               -DCMAKE_TOOLCHAIN_FILE=$(pwd)/build/Release/generators/conan_toolchain.cmake \
+              -DCMAKE_PREFIX_PATH=$(pwd)/build/Release/generators \
               -DCMAKE_BUILD_TYPE=Release
 
     - name: Build main project
