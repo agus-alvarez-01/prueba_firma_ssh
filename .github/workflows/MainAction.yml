@@ -31,6 +31,6 @@ jobs:
         uses: ./.github/actions/style   
 
       - name: Building
-        uses: ./.github/actions/building
+        uses: ./.github/actions/building-nico
         
       

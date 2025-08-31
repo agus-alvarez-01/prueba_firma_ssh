@@ -21,20 +21,7 @@ runs:
     - name: Install dependencies with Conan
       shell: bash
       run: conan install . --output-folder=build --build=missing
-###################################################
-    - name: Configure main project
-      shell: bash
-      run: |
-        mkdir -p build
-        cmake -S . -B build \
-              -DCMAKE_TOOLCHAIN_FILE=$(pwd)/build/Release/generators/conan_toolchain.cmake \
-              -DCMAKE_PREFIX_PATH=$(pwd)/build/Release/generators \
-              -DCMAKE_BUILD_TYPE=Release
 
-    - name: Build main project
-      shell: bash
-      run: cmake --build build -- -j$(nproc)
-########################################
     - name: Clone prometheus client
       shell: bash
       run: |
@@ -47,6 +34,13 @@ runs:
       run: |
         cd prometheus-client-c/prom
         mkdir -p build
-        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-        cmake --build build -- -j$(nproc)
-        sudo cmake --install build
+        cmake ..
+        make 
+        sudo make install
+
+    - name: Build main project
+      shell: bash
+      run: |
+        mkdir -p build
+        cmake ..
+        make 
