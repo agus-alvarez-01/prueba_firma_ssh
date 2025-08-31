@@ -14,7 +14,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: conan install . --output-folder=build --build=missing
+      run: conan install . --output-folder=. --build=missing
 
     - name: Configure CMake
       shell: bash
