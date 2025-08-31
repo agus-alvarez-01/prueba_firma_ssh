@@ -19,7 +19,7 @@ set(CMAKE_C_FLAGG_DEBUG "-g3 -Wall -pedantic -Werror - Wextra -Wconversion")
 include_directories(include)
 
 # Find dependences
-find_package(cJASON REQUIRED)
+find_package(cJSON REQUIRED)
 find_package(unity REQUIRED)
 
 # add_executable --> .exe/binary
