@@ -28,7 +28,7 @@ jobs:
       #  uses: ./.github/actions/coverage
 
       - name: Style
-        uses: ./.github/actions/style    
+        uses: ./.github/actions/style-facu    
 
       - name: Building
         uses: ./.github/actions/building
