@@ -20,7 +20,8 @@ runs:
       shell: bash
       run: cmake -B build -S . \
                  -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake \
-                 -DCMAKE_BUILD_TYPE=Release
+                 -DCMAKE_BUILD_TYPE=Release \
+                 -DCMAKE_PREFIX_PATH=$(pwd)/build/Release
 
     - name: Build
       shell: bash
@@ -45,7 +46,8 @@ runs:
         cd prometheus-client-c/prom
         mkdir -p build 
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
+        cmake .. -DCMAKE_BUILD_TYPE=Release \
+                 -DCMAKE_PREFIX_PATH=$(pwd)/../..
         make -j$(nproc)
         sudo make install
 
@@ -56,5 +58,6 @@ runs:
         cd build
         cmake .. \
           -DCMAKE_TOOLCHAIN_FILE=Release/generators/conan_toolchain.cmake \
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_PREFIX_PATH=$(pwd)/Release
         make -j$(nproc)
