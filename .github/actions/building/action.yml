@@ -18,20 +18,14 @@ runs:
       shell: bash
       run: conan profile detect --force
 
-    - name: Install dependencies
+    - name: Install dependencies with Conan
       shell: bash
       run: conan install . --output-folder=build --build=missing
 
-    - name: Clone prometheus client
+    - name: Build Prometheus client
       shell: bash
       run: |
         git clone https://github.com/digitalocean/prometheus-client-c.git
-        cd prometheus-client-c
-        rm -rf promhttp
-
-    - name: Build and Install prometheus client
-      shell: bash
-      run: |
         cd prometheus-client-c/prom
         mkdir -p build
         cd build
@@ -39,18 +33,14 @@ runs:
         make -j$(nproc)
         sudo make install
 
-    - name: Configure main project with CMake
+    - name: Configure main project
       shell: bash
       run: |
         mkdir -p build
-        cd build
-        cmake -S .. \
-              -B . \
-              -DCMAKE_TOOLCHAIN_FILE=../build/generators/conan_toolchain.cmake \
+        cmake -S . -B build \
+              -DCMAKE_TOOLCHAIN_FILE=$(pwd)/build/generators/conan_toolchain.cmake \
               -DCMAKE_BUILD_TYPE=Release
 
     - name: Build main project
       shell: bash
-      run: |
-        cd build
-        cmake --build . -- -j$(nproc)
+      run: cmake --build build -- -j$(nproc)
