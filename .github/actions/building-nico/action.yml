@@ -45,6 +45,7 @@ runs:
     - name: Build main project
       shell: bash
       run: |
+        mkdir -p build
         cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=../conan_toolchain.cmake
         make
