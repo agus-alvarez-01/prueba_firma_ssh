@@ -27,10 +27,14 @@ runs:
         make 
         sudo make install
 
+    - name: Install dependencies with Conan
+      shell: bash
+      run: |
+        conan install . --output-folder=build --build=missing
+
     - name: Build main project
       shell: bash
       run: |
-        mkdir -p build
         cd build
-        cmake ..
-        make 
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
+        make
