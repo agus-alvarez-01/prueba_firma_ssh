@@ -15,6 +15,11 @@ runs:
       run: |
         pip3 install conan==2.4.1
 
+    - name: Setup Conan profile
+      shell: bash
+      run: |
+        conan profile detect --force
+
     - name: Clone prometheus client
       shell: bash
       run: |
