@@ -13,7 +13,7 @@ include(CTest)
 
 # Flags for compiling
 set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_FLAGG_DEBUG "-g3 -Wall -pedantic -Werror - Wextra -Wconversion")
+set(CMAKE_C_FLAGS_DEBUG "-g3 -Wall -pedantic -Werror -Wextra -Wconversion")
 
 # Include headers
 include_directories(include)
@@ -26,4 +26,7 @@ find_package(unity REQUIRED)
 # add_library --> .o/.so/-sll STATIC SHARED
 add_executable(${PROJECT_NAME} src/hola.c)
 
-target_link_library(${PROJECT_NAME} PRIVATE cjson::cjson unity::unity)
+# Link dependencies
+target_link_libraries(${PROJECT_NAME} PRIVATE cjson::cjson)
+target_link_libraries(${PROJECT_NAME} PRIVATE unity::unity)
+
