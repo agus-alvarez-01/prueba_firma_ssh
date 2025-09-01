@@ -10,16 +10,6 @@ runs:
         sudo apt-get update
         sudo apt-get install -y cmake build-essential git libmicrohttpd-dev libcjson-dev python3-pip
 
-    - name: Install Conan
-      shell: bash
-      run: |
-        pip3 install conan==2.4.1
-
-    - name: Setup Conan profile
-      shell: bash
-      run: |
-        conan profile detect --force
-
     - name: Clone prometheus client
       shell: bash
       run: |
@@ -37,10 +27,20 @@ runs:
         make 
         sudo make install
 
+    - name: Install Conan
+      shell: bash
+      run: |
+        pip3 install conan==2.4.1
+
+    - name: Setup Conan profile
+      shell: bash
+      run: |
+        conan profile detect --force
+
     - name: Install dependencies with Conan
       shell: bash
       run: |
-        conan install . --output-folder=build --build=missing
+        conan install . --output-folder=. --build=missing
 
     - name: Build main project
       shell: bash
