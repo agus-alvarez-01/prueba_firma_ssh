@@ -47,5 +47,5 @@ runs:
       run: |
         mkdir -p build
         cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=../conan_toolchain.cmake
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake
         make
