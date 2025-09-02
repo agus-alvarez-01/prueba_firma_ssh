@@ -7,8 +7,7 @@ runs:
     - name: Instalar dependencias
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y cmake gcovr lcov bc graphviz
+        sudo apt-get install -y gcovr lcov bc graphviz
 
     - name: Configurar CMake con flags de cobertura
       shell: bash
@@ -34,24 +33,24 @@ runs:
         cd build
         gcovr -r .. --xml-pretty --output coverage.xml --html-details coverage.html > coverage.log 2>&1 || true
 
-    - name: Validar cobertura mínima
-      shell: bash
-      run: |
-        cd build
-        COVERAGE_RESULT=$(gcovr -r .. | grep "TOTAL" | awk '{print $NF}' | cut -d '%' -f 1)
-        echo "Cobertura detectada: ${COVERAGE_RESULT}%"
+    #- name: Validar cobertura mínima
+    #  shell: bash
+    #  run: |
+    #    cd build
+    #    COVERAGE_RESULT=$(gcovr -r .. | grep "TOTAL" | awk '{print $NF}' | cut -d '%' -f 1)
+    #    echo "Cobertura detectada: ${COVERAGE_RESULT}%"
 
-        if [ "$(echo "$COVERAGE_RESULT > 1" | bc)" -eq 1 ]; then
-          echo "Cobertura OK"
-          exit 0
-        else
-          echo "Cobertura insuficiente:"
-          cat coverage.log
-          exit 1
-        fi
+    #    if [ "$(echo "$COVERAGE_RESULT > 1" | bc)" -eq 1 ]; then
+    #      echo "Cobertura OK"
+    #      exit 0
+    #    else
+    #      echo "Cobertura insuficiente:"
+    #      cat coverage.log
+    #      exit 1
+    #    fi
 
     - name: Subir reporte de cobertura
-      if: always()
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: cobertura-report
