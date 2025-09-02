@@ -39,4 +39,3 @@ runs:
         name : doxygen_errors
         path : ./doxygen_errors.log
         retention-days : 2
- 
