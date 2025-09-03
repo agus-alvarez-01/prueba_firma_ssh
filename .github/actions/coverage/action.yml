@@ -7,7 +7,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        sudo apt-get install -y bc gcovr
+        sudo apt-get install -y gcovr lcov bc graphviz
     
     - name: "Run coverage"
       shell: bash
@@ -17,7 +17,7 @@ runs:
         TEST_LOG="$PROJECT_PATH/test_output.txt"
         TEST_ERRORS="$PROJECT_PATH/test_errors.txt"
         COVERAGE_LOG="$PROJECT_PATH/coverage_output.txt"
-
+        echo "0"
         ctest --test-dir build/test --output-on-failure -VV \
           1> $TEST_LOG \
           2> $TEST_ERRORS
@@ -28,10 +28,12 @@ runs:
            exit 0
         fi
 
+        echo "1"
+
         gcovr -r $PROJECT_PATH . > $COVERAGE_LOG
 
         COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
-
+        echo "2"
         if [ "$(echo "$COVERAGE_RESULT > 1" | bc)" -eq 1 ]; then
           echo "Ok"
           exit 0
@@ -40,6 +42,7 @@ runs:
           cat $COVERAGE_LOG
           exit 0
         fi
+        echo "3"
 
 #hardcodeo los exit 0 para que pase el action
 
