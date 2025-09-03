@@ -32,7 +32,7 @@ runs:
 
         COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
 
-        if [ "$(echo "$COVERAGE_RESULT >=0 " | bc)" -eq 1 ]; then
+        if [ "$(echo "$COVERAGE_RESULT >= 0" | bc)" -eq 1 ]; then
           echo "Ok"
           exit 0
         else
