@@ -7,7 +7,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        sudo apt-get install -y cmake gcovr bc
+        sudo apt-get install -y gcovr bc
 
     - name: "Run coverage"
       shell: bash
@@ -23,18 +23,24 @@ runs:
           1> $TEST_LOG \
           2> $TEST_ERRORS
 
+        echo "1"
+        
         if [ -s $TEST_ERRORS ]; then
           echo "Errors during tests:"
           cat $TEST_ERRORS
            exit 0
         fi
 
-        echo "1"
+        echo "2"
 
         gcovr -r $PROJECT_PATH . > $COVERAGE_LOG
-
+        
+        echo "3"
+        
         COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
-        echo "2"
+        
+        echo "4"
+        
         if [ "$(echo "$COVERAGE_RESULT > 1" | bc)" -eq 1 ]; then
           echo "Ok"
           exit 0
@@ -43,7 +49,7 @@ runs:
           cat $COVERAGE_LOG
           exit 0
         fi
-        echo "3"
+        echo "5"
 
 #hardcodeo los exit 0 para que pase el action
 
