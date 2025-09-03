@@ -19,6 +19,13 @@ runs:
         COVERAGE_LOG="$PROJECT_PATH/coverage_output.txt"
         echo "0"
 
+        mkdir -p build
+        cd build
+        mkdir -p test
+        cd ..
+        echo "00"
+
+
         ctest --test-dir build/test --output-on-failure -VV \
           1> $TEST_LOG \
           2> $TEST_ERRORS
