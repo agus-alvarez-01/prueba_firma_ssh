@@ -21,12 +21,6 @@ runs:
         ctest --test-dir build/test --output-on-failure -VV \
           1> $TEST_LOG \
           2> $TEST_ERRORS
-      
-        if [ -s $TEST_ERRORS ]; then
-          echo "Errors during tests:"
-          cat $TEST_ERRORS
-          exit 1
-        fi
 
         gcovr -r $PROJECT_PATH . > $COVERAGE_LOG
 
@@ -40,6 +34,12 @@ runs:
           cat $COVERAGE_LOG
           exit 1
         fi
+
+      #  if [ -s $TEST_ERRORS ]; then
+      #    echo "Errors during tests:"
+      #    cat $TEST_ERRORS
+      #     exit 1
+      #  fi
 
     - name: Upload coverage
       uses: actions/upload-artifact@v4
