@@ -23,7 +23,7 @@ runs:
         mkdir -p build
         cd build
         cmake ..
-        make 
+        make
         sudo make install
 
     - name: Install Conan

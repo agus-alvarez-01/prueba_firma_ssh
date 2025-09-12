@@ -3,7 +3,7 @@ description: "Check code style using clang-format"
 
 runs:
   using: "composite"
-  steps: 
+  steps:
     - name: "Run clang-format"
       shell: bash
       run: |
@@ -26,7 +26,7 @@ runs:
     - name: "Upload"
       uses: actions/upload-artifact@v4
       if: failure()
-      with: 
+      with:
         name: "clang-format-errors"
         path: ./clang-format-errors.txt
         retention-days: 3

@@ -29,4 +29,3 @@ add_executable(${PROJECT_NAME} src/hola.c)
 # Link dependencies
 target_link_libraries(${PROJECT_NAME} PRIVATE cjson::cjson)
 target_link_libraries(${PROJECT_NAME} PRIVATE unity::unity)
-
