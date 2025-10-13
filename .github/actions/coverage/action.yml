@@ -28,7 +28,7 @@ runs:
            exit 1
         fi
 
-        gcovr -r $PROJECT_PATH . \
+        gcovr -r $PROJECT_PATH build \
             --exclude-directories 'build/prometheus-client-c' \
             > $COVERAGE_LOG
 
