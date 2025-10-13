@@ -34,13 +34,15 @@ runs:
             > $COVERAGE_LOG
 
         COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
+        echo $COVERAGE_RESULT
 
         if [ "$(echo "$COVERAGE_RESULT > 20" | bc)" -eq 1 ]; then
-          echo "Ok"
+          echo "✅ Cobertura suficiente."
           exit 0
         else
-          echo "Coverage failed:"
-          cat $COVERAGE_LOG
+          echo "❌ Cobertura insuficiente (menor o igual al 20%)."
+          echo "Reporte completo:"
+          cat "$COVERAGE_LOG"
           exit 1
         fi
 
