@@ -25,10 +25,11 @@ runs:
         if [ -s $TEST_ERRORS ]; then
           echo "Errors during tests:"
           cat $TEST_ERRORS
-           exit 1
+          exit 1
         fi
 
-        gcovr -r $PROJECT_PATH build \
+        gcovr -r $PROJECT_PATH . \
+            --exclude 'tests/.*' \
             --exclude-directories 'build/prometheus-client-c' \
             > $COVERAGE_LOG
 
