@@ -1,4 +1,16 @@
-
+#IDE
+.vscode
+#folders
 venv/
 build/
-.github/actions/coverage/action-Facu.yml
+prometheus-client-c
+#archivo generado localmente
+CMakeUserPresets.json
+#txt de anotaciones
+anotaciones.txt
+Enunciado TP1.md
+#txt de errores
+clang-format-errors.txt
+coverage_output.txt
+test_errors.txt
+test_output.txt

@@ -15,21 +15,22 @@ jobs:
         with:
           submodules: recursive
 
-      #- name: Install QA dependencies
-      #  uses: awalsh128/cache-apt-pkgs-action@latest
-      #  with:
-      #    packages: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
-      #    version: 1.0
+      - name: Install QA dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
+          version: 1.0
 
 
-      #- name: Building
-      #  uses: ./.github/actions/building
 
-      #- name: Documentation
-      #  uses: ./.github/actions/documentation
+      - name: Building
+        uses: ./.github/actions/building
 
-      #- name: Style
-      #  uses: ./.github/actions/style
+      - name: Documentation
+        uses: ./.github/actions/documentation
 
-      #- name: Coverage
-      #  uses: ./.github/actions/coverage
+      - name: Style
+        uses: ./.github/actions/style
+
+      - name: Coverage
+        uses: ./.github/actions/coverage

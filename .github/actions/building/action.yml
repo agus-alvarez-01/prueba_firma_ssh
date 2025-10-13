@@ -9,22 +9,15 @@ runs:
       run: |
         sudo apt-get install -y cmake build-essential git libmicrohttpd-dev python3-pip
 
-    - name: Clone prometheus client
+    - name: Clone prometheus-client-c
       shell: bash
       run: |
         git clone https://github.com/digitalocean/prometheus-client-c.git
-        cd prometheus-client-c
-        rm -rf promhttp
 
-    - name: Building and Installing Prometheus
+    - name: Patch promhttp_handler return type
       shell: bash
       run: |
-        cd prometheus-client-c/prom
-        mkdir -p build
-        cd build
-        cmake ..
-        make
-        sudo make install
+        sed -i 's/^int[[:space:]]\+promhttp_handler(/enum MHD_Result promhttp_handler(/' prometheus-client-c/promhttp/src/promhttp.c
 
     - name: Install Conan
       shell: bash
@@ -41,10 +34,12 @@ runs:
       run: |
         conan install . --output-folder=. --build=missing
 
-    - name: Build main project
+    - name: Configure CMake
       shell: bash
       run: |
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
-        make
+        cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build the project
+      shell: bash
+      run: |
+        cmake --build build
