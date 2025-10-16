@@ -9,7 +9,16 @@ runs:
       run: |
         sudo apt-get install -y gcovr bc lcov
 
-    - name: "Run coverage"
+    - name: Configure and build
+      shell: bash
+      run: |
+        cmake -S . -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_FLAGS_DEBUG="-g -O0 -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_EXE_LINKER_FLAGS_DEBUG="-fprofile-arcs -ftest-coverage"
+        cmake --build build --config Debug
+
+    - name: Run coverage
       shell: bash
       run: |
         PROJECT_PATH=$(pwd)
@@ -33,7 +42,6 @@ runs:
             > $COVERAGE_LOG
 
         COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
-        echo $COVERAGE_RESULT
 
         if [ "$(echo "$COVERAGE_RESULT > 20" | bc)" -eq 1 ]; then
           echo "✅ Cobertura suficiente."
