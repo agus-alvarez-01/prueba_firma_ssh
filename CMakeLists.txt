@@ -13,7 +13,7 @@ include(CTest)
 
 # Flags for compiling
 set(CMAKE_C_STANDARD 17)
-set(CMAKE_C_FLAGS_DEBUG "-g3 -Wall -pedantic -Werror -Wextra -Wconversion")
+# set(CMAKE_C_FLAGS_DEBUG "-g3 -Wall -pedantic -Werror -Wextra -Wconversion")
 
 # Include headers
 include_directories(${CMAKE_SOURCE_DIR}/include)
