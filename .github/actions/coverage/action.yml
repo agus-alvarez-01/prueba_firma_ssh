@@ -13,7 +13,6 @@ runs:
       shell: bash
       run: |
         PROJECT_PATH=$(pwd)
-
         TEST_LOG="$PROJECT_PATH/test_output.txt"
         TEST_ERRORS="$PROJECT_PATH/test_errors.txt"
         COVERAGE_LOG="$PROJECT_PATH/coverage_output.txt"
