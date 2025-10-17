@@ -9,16 +9,6 @@ runs:
       run: |
         sudo apt-get install -y gcovr bc lcov
 
-    - name: Configure and build
-      shell: bash
-      run: |
-        cmake -S . -B build \
-          -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_C_FLAGS_DEBUG="-g -O0 -fprofile-arcs -ftest-coverage" \
-          -DCMAKE_EXE_LINKER_FLAGS_DEBUG="-fprofile-arcs -ftest-coverage"
-        cmake --build build --config Debug
-
     - name: Run coverage
       shell: bash
       run: |
@@ -37,12 +27,18 @@ runs:
           exit 1
         fi
 
-        gcovr -r $PROJECT_PATH . \
-            --exclude 'tests/.*' \
-            --exclude-directories 'build/prometheus-client-c' \
-            > $COVERAGE_LOG
+        BUILD_PATH="$PROJECT_PATH/build"
 
-        COVERAGE_RESULT=$(grep "TOTAL" $COVERAGE_LOG | awk '{print $NF}' | cut -d '%' -f 1)
+        gcovr \
+        -r "$PROJECT_PATH/src" \
+        "$BUILD_PATH" \
+        --filter "$PROJECT_PATH/src" \
+        --exclude ".*CMakeFiles.*" \
+        --exclude ".*tests.*" \
+        > "$COVERAGE_LOG"
+
+        COVERAGE_RESULT=$(grep "TOTAL" "$COVERAGE_LOG" | awk '{print $NF}' | cut -d '%' -f 1)
+        echo "Cobertura total: $COVERAGE_RESULT%"
 
         if [ "$(echo "$COVERAGE_RESULT > 20" | bc)" -eq 1 ]; then
           echo "✅ Cobertura suficiente."
