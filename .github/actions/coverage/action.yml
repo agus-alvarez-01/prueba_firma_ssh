@@ -27,26 +27,7 @@ runs:
           exit 1
         fi
 
-    - name: Check generated gcda files
-      shell: bash
-      run: |
-        echo "Buscando archivos .gcda generados..."
-        find build -name "*.gcda" || echo "No se encontraron archivos .gcda"
-
-    - name: Run coverage
-      shell: bash
-      run: |
-        PROJECT_PATH=$(pwd)
-        COVERAGE_LOG="$PROJECT_PATH/coverage_output.txt"
-        BUILD_PATH="$PROJECT_PATH/build"
-
-        gcovr \
-        -r "$PROJECT_PATH/src" \
-        "$BUILD_PATH" \
-        --filter "$PROJECT_PATH/src" \
-        --exclude ".*CMakeFiles.*" \
-        --exclude ".*tests.*" \
-        > "$COVERAGE_LOG"
+        gcovr -r "$PROJECT_PATH" . > "$COVERAGE_LOG"
 
         cat "$COVERAGE_LOG"
 

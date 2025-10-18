@@ -13,7 +13,7 @@ include(CTest)
 
 # Flags for compiling
 set(CMAKE_C_STANDARD 17)
-# set(CMAKE_C_FLAGS_DEBUG "-g3 -Wall -pedantic -Werror -Wextra -Wconversion")
+set(CMAKE_C_FLAGS_DEBUG "-g3 -Wall -pedantic -Werror -Wextra -Wconversion")
 
 # Include headers
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -85,7 +85,7 @@ add_test(
     NAME test_prom_metrics
     COMMAND ${TEST_OUTPUT_DIR}/test_prom_metrics
 )
-# Enable coverage flags only for our executables (not for external libs)
+# Flags para coverage, solo para los ejecutables
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
     target_link_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
