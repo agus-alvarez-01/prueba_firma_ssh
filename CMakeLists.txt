@@ -85,3 +85,14 @@ add_test(
     NAME test_prom_metrics
     COMMAND ${TEST_OUTPUT_DIR}/test_prom_metrics
 )
+# Enable coverage flags only for our executables (not for external libs)
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
+
+    target_compile_options(test_get_metrics PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(test_get_metrics PRIVATE -fprofile-arcs -ftest-coverage)
+
+    target_compile_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
+endif()
