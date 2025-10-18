@@ -9,7 +9,7 @@ runs:
       run: |
         sudo apt-get install -y gcovr bc lcov
 
-    - name: Run ctest
+    - name: Run Coverage
       shell: bash
       run: |
         PROJECT_PATH=$(pwd)
@@ -29,17 +29,13 @@ runs:
 
         gcovr -r "$PROJECT_PATH" . > "$COVERAGE_LOG"
 
-        cat "$COVERAGE_LOG"
-
         COVERAGE_RESULT=$(grep "TOTAL" "$COVERAGE_LOG" | awk '{print $NF}' | cut -d '%' -f 1)
-        echo "Cobertura total: $COVERAGE_RESULT%"
 
         if [ "$(echo "$COVERAGE_RESULT > 20" | bc)" -eq 1 ]; then
-          echo "✅ Cobertura suficiente."
+          echo "Ok"
           exit 0
         else
-          echo "❌ Cobertura insuficiente (menor o igual al 20%)."
-          echo "Reporte completo:"
+          echo "Coverage insuficiente:"
           cat "$COVERAGE_LOG"
           exit 1
         fi
