@@ -1,110 +1,160 @@
-#include <sys/stat.h> //para mkdir
+#include <monitoring.h> //para metricas
+#include <pthread.h>    //para hilos
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h> //para sleep
 
-#include "get_metrics.h"  //obteniendo métricas del /proc
-#include "prom_metrics.h" //para exponer métricas vía HTTP
+#include <errno.h>       //para errno
+#include <option_bash.h> //para opciones de la bash
+#include <stdbool.h>
+#include <string.h>    //para strcpy
+#include <sys/prctl.h> //para prctl
 
-#define SLEEP_SECONDS 5
-#define PATH_DIR "/var/lib/monitoreo" // directorio para el archivo de metrics
-#define LOG_PATH "/var/lib/monitoreo/metrics.log"
+static int fd[2];     // comunicación Hijo1 → Hijo2
+pid_t pid_monitoring; // PID del proceso de monitoreo
+bool monitoring_active = false;
 
-void createDirectoryIfNotExists(const char* path)
+static void handler(int sig) // momentaneo en este main
 {
-    struct stat st = {0};
-    if (stat(path, &st) == -1)
+    printf("\n\nApretaste ctrl+c, se va detener la obtencion de metricas en 3 segundos.\n");
+    sleep(2);
+    printf("1 segundos.\n");
+    sleep(1);
+    printf("End Metrics.\n");
+    exit(0);
+}
+
+// i
+void startMonitoring()
+{
+    if (!monitoring_active)
     {
-        if (mkdir(path, 0755) == -1)
+        if (pipe(fd) == -1) // crea pipe
         {
-            perror("Error al crear directorio");
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+        pid_monitoring = fork();
+        if (pid_monitoring == 0)
+        {
+            /*Proceso Monitoring.*/
+            prctl(PR_SET_PDEATHSIG, SIGTERM); // para que el hijo muera si el padre muere
+            close(fd[0]);                     // no lee
+            char fd_str[256];
+            sprintf(fd_str, "%d", fd[1]);
+            execl("./build/monitoring", "./monitoring", fd_str, NULL);
+            perror("execl");
+            exit(1);
         }
         else
         {
-            printf("Directorio %s creado.\n", path);
+            printf("\nHaz iniciado la obtencion de metricas.\n\n");
+            close(fd[1]); // padre solo LEE
+            monitoring_active = true;
         }
     }
+    else
+    {
+        printf("\nEl monitoreo ya esta activo!.\n\n");
+    }
 }
 
-void updateMetrics()
+// u
+void showLastMetric()
 {
-    // Obtengo las estadísticas
-    CpuStats cpu_stats = get_cpu_stats();
-    MemoryStats mem_stats = get_memory_stat();
-    LoadavgStats load_stats = get_loadavg_stat();
-    TimestampStats timestamp_stats = get_timestamp_stat();
-    // Controlo que ninguna métrica tenga error (-1)
-    if (cpu_stats.cpu_user == -1 || cpu_stats.cpu_system == -1 || cpu_stats.cpu_rate == -1 ||
-        mem_stats.mem_total == -1 || mem_stats.mem_free == -1 || mem_stats.mem_used == -1 || load_stats.load_1 == -1 ||
-        load_stats.load_5 == -1 || load_stats.load_15 == -1 || timestamp_stats.timestamp == -1)
+    if (monitoring_active)
     {
-        fprintf(stderr, "Error al obtener las métricas del sistema\n");
-        return;
+        kill(pid_monitoring, SIGUSR1); // pedir dato
+        char lastMetric[256];
+        ssize_t n = read(fd[0], &lastMetric, sizeof(lastMetric)); // se bloquea hasta leer
+        if (n == -1)
+        {
+            perror("read");
+            return;
+        }
+        printf("\nBuscando ultima metrica ...\n\n");
+        sleep(2);
+        printf("\nLa ultima metrica es: %s\n\n", lastMetric);
+        lastMetric[0] = '\0'; // limpiar buffer
     }
-    // Abro el archivo en modo append para escribir las métricas
-    FILE* outNDJSON = fopen(LOG_PATH, "a");
-    if (outNDJSON == NULL)
+    else
     {
-        perror("Error abriendo archivo de salida");
-        exit(EXIT_FAILURE);
+        printf("\nEl monitoreo no esta activo. No se puede obtener la ultima metrica.\n\n");
     }
-    // inicio del NDJSON
-    fprintf(outNDJSON, "{");
-    // Timestamp
-    fprintf(outNDJSON, "\"timestamp\":%ld,", timestamp_stats.timestamp);
-    // Memoria
-    fprintf(outNDJSON, "\"mem_total\":%ld,", mem_stats.mem_total);
-    fprintf(outNDJSON, "\"mem_free\":%ld,", mem_stats.mem_free);
-    fprintf(outNDJSON, "\"mem_used\":%ld,", mem_stats.mem_used);
-    // CPU
-    fprintf(outNDJSON, "\"cpu_user\":%ld,", cpu_stats.cpu_user);
-    fprintf(outNDJSON, "\"cpu_system\":%ld,", cpu_stats.cpu_system);
-    fprintf(outNDJSON, "\"cpu_rate\":%.5f,", cpu_stats.cpu_rate); //.5 para ver diferencias
-    // Load Average
-    fprintf(outNDJSON, "\"load_1\":%.2f,", load_stats.load_1);
-    fprintf(outNDJSON, "\"load_5\":%.2f,", load_stats.load_5);
-    fprintf(outNDJSON, "\"load_15\":%.2f", load_stats.load_15);
-    // fin del NDJSON
-    fprintf(outNDJSON, "}\n");
-    // cierro archivo
-    fclose(outNDJSON);
-    // Una vez que se actualizan las métricas en el log, se actualizan las métricas de Prometheus
-    update_prom_cpu_stat(cpu_stats);
-    update_prom_memory_stat(mem_stats);
-    update_prom_loadavg_stat(load_stats);
-    update_prom_timestamp_stat(timestamp_stats);
+}
+// p
+void stopMonitoring()
+{
+    if (monitoring_active)
+    {
+        kill(pid_monitoring, SIGTERM); // terminar proceso monitoring
+        close(fd[0]);
+        close(fd[1]); // cerrar pipe, para cuando se inicie otra vez
+        monitoring_active = false;
+        printf("\nHaz parado la obtencion de metricas.\n\n");
+    }
+    else
+    {
+        printf("\nEl monitoreo no esta activo.\n\n");
+    }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    // Creo el directorio si no existe
-    createDirectoryIfNotExists(PATH_DIR);
-    // Abro y cierro el archivo en modo escritura para que se limpie cada vez
-    FILE* outNDJSON = fopen(LOG_PATH, "w");
-    if (outNDJSON == NULL)
+    /* opciones para la bash*/
+    int aux = option_entry(argc, argv);
+    if (aux != 0)
     {
-        perror("Error abriendo archivo de salida");
-        exit(EXIT_FAILURE);
+        printf("Hay un error en option_bash.\n");
+        return 0;
     }
-    fclose(outNDJSON);
-    // Hilo para exponer las métricas vía HTTP
-    pthread_t tid;
-    if (pthread_create(&tid, NULL, expose_metrics, NULL) != 0)
+
+    /* ctl-c handler, post creación de hijo (si opcion es 'i')*/
+    signal(SIGINT, handler);
+    char opcion;
+    do
     {
-        fprintf(stderr, "Error al crear el hilo del servidor HTTP\n");
-        return EXIT_FAILURE;
-    }
-    // Se inicializan las métricas de Prometheus
-    init_metrics();
-    // Bucle principal para actualizar las métricas cada 5 segundos
-    while (1)
-    {
-        // Actualizar métricas para el log y Prometheus
-        updateMetrics();
-        sleep(SLEEP_SECONDS);
-    }
-    // Destroy the mutex
-    destroy_mutex();
-    // El daemon del servidor HTTP se detiene al finalizar el programa
+        // mostrar opciones de interaccion
+        printf("=======================================\n");
+        printf("---------Opciones del programa---------\n");
+        printf("\"i\"-> Iniciar monitoreo de metricas.\n");
+        printf("\"p\"-> Parar monitoreo de metricas.\n");
+        printf("\"u\"-> Mostrar ultima metrica obtenida.\n");
+        printf("\"s\"-> Salir del programa.\n");
+        printf("=======================================\n");
+        printf("\nIngrese opcion:  ");
+        // Reads character input from the user
+        if (scanf(" %c", &opcion) != 1) // el espacio antes de %c es para ignorar espacios en blanco
+        {
+            fprintf(stderr, "Error al leer la opción\n");
+            return 1;
+        }
+        printf("\nSu opcion fue: %c\n", opcion);
+        sleep(1); // para que se vea mejor la interaccion
+        switch (opcion)
+        {
+        case 'i':
+            startMonitoring();
+            break;
+        case 'u':
+            showLastMetric();
+            break;
+        case 'p':
+            stopMonitoring();
+            break;
+        case 's':
+            printf("\nHaz salido del programa.\n");
+            break;
+        default:
+            printf("Opcion no valida. Intente de nuevo.\n");
+            printf("-----------------------------------\n");
+            break;
+        }
+        sleep(2); // para que se vea mejor la interaccion
+    } while (opcion != 's');
+
+    close(fd[0]); // cierra LECTURA
+    // close(fd[1]);     // cierra ESCRITURA
     return 0;
 }
-
-// http://localhost:3000/ (para ver las métricas en Grafana)
-// http://localhost:8000/metrics (para ver las métricas en Prometheus)

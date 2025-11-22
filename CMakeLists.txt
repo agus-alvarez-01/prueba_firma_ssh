@@ -24,10 +24,16 @@ add_subdirectory(prometheus-client-c/promhttp)
 
 # add_executable --> .exe/binary
 # add_library --> .o/.so/-sll STATIC SHARED
+# ejecutable principal, shell script
 add_executable(${PROJECT_NAME}
-	src/prom_metrics.c
-	src/get_metrics.c
+    src/option_bash.c
 	src/main.c
+)
+# ejecuatble para monitoring
+add_executable(monitoring
+    src/prom_metrics.c
+	src/get_metrics.c
+    src/monitoring.c
 )
 
 # Incluyo los headers de prometheus-client-c
@@ -35,8 +41,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE prometheus-client-c/prom/incl
 target_include_directories(${PROJECT_NAME} PRIVATE prometheus-client-c/promhttp/include)
 
 # Linkeo las librerias de prom y promhttp
-target_link_libraries(${PROJECT_NAME} PRIVATE prom)
-target_link_libraries(${PROJECT_NAME} PRIVATE promhttp)
+target_link_libraries(monitoring PRIVATE prom)
+target_link_libraries(monitoring PRIVATE promhttp)
 
 # Find dependences
 find_package(cJSON REQUIRED)
@@ -96,3 +102,15 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
     target_link_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
 endif()
+
+# --- Limpieza automática de coverage ---
+# para que no hayapproblemas con "different checksum"
+
+add_custom_target(prebuild_clean_coverage
+    COMMAND find ${CMAKE_BINARY_DIR} -name "*.gcda" -delete
+    COMMENT "Limpiando .gcda viejos antes de compilar"
+)
+
+add_dependencies(${PROJECT_NAME} prebuild_clean_coverage)
+add_dependencies(test_get_metrics prebuild_clean_coverage)
+add_dependencies(test_prom_metrics prebuild_clean_coverage)

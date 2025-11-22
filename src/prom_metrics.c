@@ -51,7 +51,7 @@ void update_prom_timestamp_stat(TimestampStats timestamp_stats)
     pthread_mutex_unlock(&lock);                                // Releases the mutex after updating
 }
 
-void* expose_metrics(void* arg)
+void* expose_metrics(void* arg) // funcion con puntero porque se usa con pthread_create()
 {
     // Ensures the HTTP handler is attached to the default Prometheus registry
     promhttp_set_active_collector_registry(NULL);
@@ -157,3 +157,13 @@ void destroy_mutex()
 {
     pthread_mutex_destroy(&lock);
 }
+
+///////////////
+// Hilo para iniciar las metricas
+// pthread_t metrics;
+// if (pthread_create(&metrics, NULL, monitoring, NULL) != 0)
+// {
+//     fprintf(stderr, "Error al crear el hilo del monitoring\n");
+//     exit(EXIT_FAILURE);
+//     //return EXIT_FAILURE;
+// }

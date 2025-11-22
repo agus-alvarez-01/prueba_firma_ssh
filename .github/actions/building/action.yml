@@ -43,3 +43,5 @@ runs:
       shell: bash
       run: |
         cmake --build build
+# ejecutar parado en la carpeta SO1-TPs-2025, por que execl busca en el path relativo, ./build/monitoring
+# sudo ./build/SO1-TPs-2025
