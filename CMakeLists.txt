@@ -26,7 +26,7 @@ add_subdirectory(prometheus-client-c/promhttp)
 # add_library --> .o/.so/-sll STATIC SHARED
 # ejecutable principal, shell script
 add_executable(${PROJECT_NAME}
-    src/option_bash.c
+    src/flags_bash.c
 	src/main.c
 )
 # ejecuatble para monitoring

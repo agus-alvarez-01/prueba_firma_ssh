@@ -87,7 +87,6 @@ int main(int argc, char* argv[])
     // El pipe se pasa como argumento
     pipe_fd = atoi(argv[1]);
     signal(SIGUSR1, handler);
-
     // Creo el directorio si no existe
     createDirectoryIfNotExists(PATH_DIR);
     // Abro y cierro el archivo en modo escritura para que se limpie cada vez
