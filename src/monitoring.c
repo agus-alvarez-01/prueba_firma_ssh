@@ -77,7 +77,7 @@ static void handler(int sig) // handler para el escribir en pipe
     ssize_t n = write(pipe_fd, &lastMetric, sizeof(lastMetric));
     if (n == -1)
     {
-        perror("read");
+        perror("write");
         return;
     }
 }

@@ -16,11 +16,12 @@
 #define PATH_DIR "/var/log/monitoreo" // directorio para el archivo de actions
 #define LOG_PATH "/var/log/monitoreo/actions.log"
 
-static int fd[2];     // comunicación
-pid_t pid_monitoring; // PID del proceso de monitoreo
+static int fd[2];      // comunicación con proceso monitoring
+static int logpipe[2]; // comunicación con hilo logger
+pid_t pid_monitoring;  // PID del proceso de monitoreo
 bool monitoring_active = false;
 
-static void handler(int sig) // momentaneo en este main
+static void handler(int sig) // ctl-c handler
 {
     printf("\n\nApretaste ctrl+c, se va detener la interaccion con la shell en 3 segundos.\n");
     sleep(2);
@@ -170,18 +171,46 @@ void runLS()
     printf("\nFin del comando 'ls'.\n\n");
 }
 
-void saveOptions(char opcion)
+void* loggerDaemon(void* arg)
 {
-    // Abro en modo append para guardar la opcion
-    FILE* outACTIONS = fopen(LOG_PATH, "a");
+    // Creo el directorio si no existe
+    createDirectoryIfNotExists(PATH_DIR);
+    // Abro y cierro el archivo en modo escritura para que se limpie cada vez
+    FILE* outACTIONS = fopen(LOG_PATH, "w");
     if (outACTIONS == NULL)
     {
         perror("Error abriendo archivo de salida");
         exit(EXIT_FAILURE);
     }
-    time_t t = time(NULL);
-    fprintf(outACTIONS, "%s : Opcion elegida: %c\n", ctime(&t), opcion);
     fclose(outACTIONS);
+    // Abro en modo append para guardar la opcion
+    outACTIONS = fopen(LOG_PATH, "a");
+    if (outACTIONS == NULL)
+    {
+        perror("Error abriendo archivo de salida");
+        pthread_exit(NULL);
+    }
+    time_t t = time(NULL);
+    char opcion[32]; // se espera solo un caracter, pero para que tambien guarde opciones incorrectas
+    while (1)
+    {
+        int n = read(logpipe[0], opcion, sizeof(opcion));
+        if (n == -1)
+        {
+            perror("read from logger pipe");
+            return NULL;
+        }
+        if (n > 0)
+        {
+            opcion[n] = '\0';
+            char* ts = ctime(&t);
+            ts[strcspn(ts, "\n")] = '\0'; // reemplaza el salto por \0, para que quede todo en una linea
+            fprintf(outACTIONS, "%s >> Se ingreso por consola: %s\n", ts, opcion);
+            fflush(outACTIONS);
+        }
+    }
+    fclose(outACTIONS);
+    return NULL;
 }
 
 int main(int argc, char* argv[])
@@ -193,19 +222,15 @@ int main(int argc, char* argv[])
         return 0;
     }
     signal(SIGINT, handler); // ctl-c handler
-    char opcion;
-
-    // Creo el directorio si no existe
-    createDirectoryIfNotExists(PATH_DIR);
-    // Abro y cierro el archivo en modo escritura para que se limpie cada vez
-    FILE* outACTIONS = fopen(LOG_PATH, "w");
-    if (outACTIONS == NULL)
+    char opcion[32];         // vector para la opcion ingresada
+    pthread_t t;             // hilo logger
+    if (pipe(logpipe) == -1) // crea pipe para logger
     {
-        perror("Error abriendo archivo de salida");
+        perror("pipe");
         exit(EXIT_FAILURE);
     }
-    fclose(outACTIONS);
-
+    pthread_create(&t, NULL, loggerDaemon, NULL); // crea hilo daemon
+    pthread_detach(t);                            // daemon puro
     do
     {
         // mostrar opciones de interaccion
@@ -219,15 +244,31 @@ int main(int argc, char* argv[])
         printf("\"e\"-> Salir del programa.\n");
         printf("=======================================\n");
         printf("\nIngrese opcion:  ");
-        // Reads character input from the user
-        if (scanf(" %c", &opcion) != 1) // el espacio antes de %c es para ignorar espacios en blanco
+        if (fgets(opcion, sizeof(opcion), stdin) != NULL)
         {
-            fprintf(stderr, "Error al leer la opción\n");
-            return 1;
+            int len = strlen(opcion);
+            if (len > 0 && opcion[len - 1] == '\n')
+            {
+                opcion[len - 1] = '\0'; // Elimina el salto de linea si esta presente
+                len--;
+            }
         }
-        printf("\nSu opcion fue: %c\n", opcion);
+        printf("\nSu opcion fue: %s\n", opcion);
         sleep(1); // para que se vea mejor la interaccion
-        switch (opcion)
+        // las opciones se envian al logger, sean o no de un caracter, se registra todo
+        int n = write(logpipe[1], opcion, strlen(opcion)); // enviar opcion al logger
+        if (n == -1)
+        {
+            perror("write to logger pipe");
+            return 0;
+        }
+        if (strlen(opcion) != 1)
+        {
+            printf("\nTiene que ingresar solo un caracter.\n");
+            printf("-----------------------------------\n\n");
+            continue;
+        }
+        switch (opcion[0])
         {
         case 'i':
             startMonitoring();
@@ -248,16 +289,12 @@ int main(int argc, char* argv[])
             printf("\nEXIT: Saliendo del programa...\n");
             break;
         default:
-            printf("Opcion no valida. Intente de nuevo.\n");
+            printf("\nOpcion no valida. Intente de nuevo.\n");
             printf("-----------------------------------\n");
             break;
         }
-        saveOptions(opcion); // guardar opciones en var/log/monitoreo/actions.log
-        sleep(2);            // para que se vea mejor la interaccion
-    } while (opcion != 'e');
-
-    close(fd[0]); // cierra LECTURA
-    close(fd[1]); // cierra ESCRITURA
+        sleep(2); // para que se vea mejor la interaccion
+    } while (opcion[0] != 'e');
 
     return 0;
 }
