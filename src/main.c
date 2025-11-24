@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <string.h>    //para strcpy
 #include <sys/prctl.h> //para prctl
-#include <sys/stat.h>  //para mkdir
-#include <sys/wait.h>  //para waitpid
+
+#include <sys/wait.h> //para waitpid
 #include <time.h>
 #include <unistd.h> //para sleep
 
-#include <flags_bash.h> //flags para la bash
+#include <create_directory.h> //crear directorio si no existe
+#include <flags_bash.h>       //flags para la bash
 
 #define PATH_DIR "/var/log/monitoreo" // directorio para el archivo de actions
 #define LOG_PATH "/var/log/monitoreo/actions.log"
@@ -20,6 +21,8 @@ static int fd[2];      // comunicación con proceso monitoring
 static int logpipe[2]; // comunicación con hilo logger
 pid_t pid_monitoring;  // PID del proceso de monitoreo
 bool monitoring_active = false;
+time_t t_start;            // tiempo de inicio de la shell
+time_t t_monitoring_start; // tiempo de inicio del monitoreo
 
 static void handler(int sig) // ctl-c handler
 {
@@ -31,20 +34,14 @@ static void handler(int sig) // ctl-c handler
     exit(0);
 }
 
-void createDirectoryIfNotExists(const char* path)
+void ontime(time_t t, char* buffer, size_t size)
 {
-    struct stat st = {0};
-    if (stat(path, &st) == -1)
-    {
-        if (mkdir(path, 0755) == -1)
-        {
-            perror("Error al crear directorio");
-        }
-        else
-        {
-            printf("Directorio %s creado.\n", path);
-        }
-    }
+    time_t now = time(NULL);
+    time_t diff = now - t;
+    int hours = diff / 3600;
+    int minutes = (diff % 3600) / 60;
+    int seconds = diff % 60;
+    snprintf(buffer, size, "%02d:%02d:%02d", hours, minutes, seconds);
 }
 
 // i
@@ -74,6 +71,7 @@ void startMonitoring()
             printf("\nHaz iniciado la obtencion de metricas.\n\n");
             close(fd[1]); // padre solo LEE
             monitoring_active = true;
+            t_monitoring_start = time(NULL);
         }
     }
     else
@@ -108,7 +106,7 @@ void showLastMetric()
     {
         kill(pid_monitoring, SIGUSR1); // pedir dato
         char lastMetric[256];
-        ssize_t n = read(fd[0], &lastMetric, sizeof(lastMetric)); // se bloquea hasta leer
+        int n = read(fd[0], &lastMetric, sizeof(lastMetric)); // se bloquea hasta leer
         if (n == -1)
         {
             perror("read");
@@ -122,6 +120,26 @@ void showLastMetric()
     else
     {
         printf("\nEl monitoreo no esta activo. No se puede obtener la ultima metrica.\n\n");
+    }
+}
+
+// t
+void showStatus()
+{
+    char tiempo[64];
+    ontime(t_start, tiempo, sizeof(tiempo));
+    printf("\n\nLa shell esta activa hace: %s\n", tiempo);
+    printf("PID de shell: %d\n", getpid());
+    if (monitoring_active)
+    {
+        char tiempo_monitoring[64];
+        ontime(t_monitoring_start, tiempo_monitoring, sizeof(tiempo_monitoring));
+        printf("El monitoreo esta activo hace: %s\n", tiempo_monitoring);
+        printf("PID de Monitoring: %d\n\n", pid_monitoring);
+    }
+    else
+    {
+        printf("El monitoreo no esta activo.\n\n");
     }
 }
 
@@ -190,7 +208,7 @@ void* loggerDaemon(void* arg)
         perror("Error abriendo archivo de salida");
         pthread_exit(NULL);
     }
-    time_t t = time(NULL);
+    time_t t;
     char opcion[32]; // se espera solo un caracter, pero para que tambien guarde opciones incorrectas
     while (1)
     {
@@ -202,6 +220,7 @@ void* loggerDaemon(void* arg)
         }
         if (n > 0)
         {
+            t = time(NULL);
             opcion[n] = '\0';
             char* ts = ctime(&t);
             ts[strcspn(ts, "\n")] = '\0'; // reemplaza el salto por \0, para que quede todo en una linea
@@ -218,11 +237,12 @@ int main(int argc, char* argv[])
     int aux = option_entry(argc, argv);
     if (aux != 0)
     {
-        printf("Hay un error en option_bash.\n");
+        printf("Hay un error en flags_bash.\n");
         return 0;
     }
     signal(SIGINT, handler); // ctl-c handler
     char opcion[32];         // vector para la opcion ingresada
+    t_start = time(NULL);    // tiempo de inicio de la shell
     pthread_t t;             // hilo logger
     if (pipe(logpipe) == -1) // crea pipe para logger
     {
@@ -239,6 +259,7 @@ int main(int argc, char* argv[])
         printf("\"i\"-> Iniciar monitoreo de metricas.\n");
         printf("\"s\"-> Stop monitoreo de metricas.\n");
         printf("\"u\"-> Mostrar ultima metrica obtenida.\n");
+        printf("\"t\"-> Mostrar estado de la shell y del monitoreo.\n");
         printf("\"p\"-> Ejecutar comando \"ps aux\".\n");
         printf("\"l\"-> Ejecutar comando \"ls\".\n");
         printf("\"e\"-> Salir del programa.\n");
@@ -266,6 +287,7 @@ int main(int argc, char* argv[])
         {
             printf("\nTiene que ingresar solo un caracter.\n");
             printf("-----------------------------------\n\n");
+            sleep(2);
             continue;
         }
         switch (opcion[0])
@@ -278,6 +300,9 @@ int main(int argc, char* argv[])
             break;
         case 'u':
             showLastMetric();
+            break;
+        case 't':
+            showStatus();
             break;
         case 'p':
             runPS();

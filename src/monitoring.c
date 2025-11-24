@@ -1,9 +1,8 @@
 #include <signal.h>
-#include <sys/stat.h> //para mkdir
 
-#include "get_metrics.h"  //obteniendo métricas del /proc
-#include "monitoring.h"   //para exponer métricas vía HTTP
-#include "prom_metrics.h" //para exponer métricas vía HTTP
+#include <create_directory.h> //crear directorio si no existe
+#include <get_metrics.h>      //obteniendo métricas del /proc
+#include <prom_metrics.h>     //para exponer métricas vía HTTP
 
 #define SLEEP_SECONDS 5
 #define PATH_DIR "/var/lib/monitoreo" // directorio para el archivo de metrics
@@ -13,22 +12,6 @@ static char lastMetric[256] =
     "Aun no hay metricas"; // almacena la última métrica en formato NDJSON, y son aproximadamente 185 caracteres
 // Pipe para comunicar la última métrica al proceso padre
 int pipe_fd; // descriptor de archivo del pipe
-
-void createDirectoryIfNotExists(const char* path)
-{
-    struct stat st = {0};
-    if (stat(path, &st) == -1)
-    {
-        if (mkdir(path, 0755) == -1)
-        {
-            perror("Error al crear directorio");
-        }
-        else
-        {
-            printf("Directorio %s creado.\n", path);
-        }
-    }
-}
 
 void updateMetrics()
 {
@@ -74,7 +57,7 @@ void updateMetrics()
 
 static void handler(int sig) // handler para el escribir en pipe
 {
-    ssize_t n = write(pipe_fd, &lastMetric, sizeof(lastMetric));
+    int n = write(pipe_fd, &lastMetric, sizeof(lastMetric));
     if (n == -1)
     {
         perror("write");
