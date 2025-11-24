@@ -1,7 +1,6 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 #define LOG_PATH "/var/log/monitoreo/actions.log"
 
@@ -35,7 +34,7 @@ void showActionsLog()
     exit(0);
 }
 
-int option_entry(int argc, char* argv[])
+int flag_entry(int argc, char* argv[])
 {
     int next_option;
     const char* const short_options = "ha";

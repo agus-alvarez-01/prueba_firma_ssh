@@ -28,6 +28,7 @@ add_subdirectory(prometheus-client-c/promhttp)
 add_executable(${PROJECT_NAME}
     src/flags_bash.c
 	src/main.c
+    src/shell_core.c
 )
 # ejecuatble para monitoring
 add_executable(monitoring
@@ -80,6 +81,24 @@ add_executable(test_prom_metrics
     src/prom_metrics.c
 )
 
+# # Test main / shell functions
+# add_executable(test_main_funcs
+#     tests/test_main_funcs.c
+#     src/shell_core.c
+# )
+
+# set_target_properties(test_main_funcs PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+# )
+
+# target_include_directories(test_main_funcs PRIVATE include)
+# target_link_libraries(test_main_funcs PRIVATE unity::unity pthread)
+
+# add_test(
+#     NAME test_main_funcs
+#     COMMAND ${TEST_OUTPUT_DIR}/test_main_funcs
+# )
+
 set_target_properties(test_prom_metrics PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
 )
@@ -91,6 +110,40 @@ add_test(
     NAME test_prom_metrics
     COMMAND ${TEST_OUTPUT_DIR}/test_prom_metrics
 )
+
+# # Test flags_bash (simple checks)
+# add_executable(test_flags_bash_simple
+#     tests/test_flags_bash_simple.c
+# )
+
+# set_target_properties(test_flags_bash_simple PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+# )
+
+# target_include_directories(test_flags_bash_simple PRIVATE include)
+# target_link_libraries(test_flags_bash_simple PRIVATE unity::unity)
+
+# add_test(
+#     NAME test_flags_bash_simple
+#     COMMAND ${TEST_OUTPUT_DIR}/test_flags_bash_simple
+# )
+
+# # Test create_directory
+# add_executable(test_create_directory
+#     tests/test_create_directory.c
+# )
+
+# set_target_properties(test_create_directory PROPERTIES
+#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+# )
+
+# target_include_directories(test_create_directory PRIVATE include)
+# target_link_libraries(test_create_directory PRIVATE unity::unity)
+
+# add_test(
+#     NAME test_create_directory
+#     COMMAND ${TEST_OUTPUT_DIR}/test_create_directory
+# )
 # Flags para coverage, solo para los ejecutables
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
@@ -104,7 +157,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 # --- Limpieza automática de coverage ---
-# para que no hayapproblemas con "different checksum"
+# para que no haya problemas con "different checksum"
 
 add_custom_target(prebuild_clean_coverage
     COMMAND find ${CMAKE_BINARY_DIR} -name "*.gcda" -delete
