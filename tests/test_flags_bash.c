@@ -1,4 +1,4 @@
-#include "../src/flags_bash.c"
+#include "flags_bash.h"
 #include "unity.h"
 
 void setUp(void)

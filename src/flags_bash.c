@@ -8,10 +8,17 @@ const char* program_name;
 void print_help(FILE* stream, int exit_code)
 {
     fprintf(stream, "Bienvenido a la shell interactiva SO1-TPs-2025\n");
+    fprintf(stream, "---------Opciones del programa---------\n"
+                    "\"start\"-> Iniciar monitoreo de metricas.\n"
+                    "\"stop\"-> Para monitoreo de metricas.\n"
+                    "\"status\"-> Mostrar ultima metrica obtenida.\n"
+                    "\"psnode\"-> Muestra el estado de los procesos del programa.\n"
+                    "\"exit\"-> Salir del programa.\n"
+                    "---------------------------------------\n");
     fprintf(stream, "Las opciones de flags al ejecutar son: \n"
-                    " -h --help  Muestra informacion de uso.\n"
-                    " -a --actions Muestra el archivo actions.log, que contiene"
-                    " la secuencia de interacciones anteriores de la shell.\n");
+                    " -h o --help -> Muestra informacion de uso.\n"
+                    " -a o --actions -> Muestra el archivo actions.log, \n"
+                    " que contiene la secuencia de interacciones anteriores de la shell.\n");
     exit(exit_code);
 }
 

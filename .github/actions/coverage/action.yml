@@ -9,7 +9,7 @@ runs:
       run: |
         sudo apt-get install -y gcovr bc lcov
 
-    - name: Run Coverage
+    - name: "Run coverage"
       shell: bash
       run: |
         PROJECT_PATH=$(pwd)
@@ -31,12 +31,12 @@ runs:
 
         COVERAGE_RESULT=$(grep "TOTAL" "$COVERAGE_LOG" | awk '{print $NF}' | cut -d '%' -f 1)
 
-        if [ "$(echo "$COVERAGE_RESULT > 20" | bc)" -eq 1 ]; then
+        if [ "$(echo "$COVERAGE_RESULT > 25" | bc)" -eq 1 ]; then
           echo "Ok"
           exit 0
         else
-          echo "Coverage insuficiente:"
-          cat "$COVERAGE_LOG"
+          echo "Coverage failed:"
+          cat $COVERAGE_LOG
           exit 1
         fi
 

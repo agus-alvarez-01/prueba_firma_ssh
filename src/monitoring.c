@@ -1,15 +1,16 @@
 #include <signal.h>
 
-#include <create_directory.h> //crear directorio si no existe
-#include <get_metrics.h>      //obteniendo métricas del /proc
-#include <prom_metrics.h>     //para exponer métricas vía HTTP
+#include "create_directory.h" //crear directorio si no existe
+#include "get_metrics.h"      //obteniendo métricas del /proc
+#include "prom_metrics.h"     //para exponer métricas vía HTTP
 
 #define SLEEP_SECONDS 5
 #define PATH_DIR "/var/lib/monitoreo" // directorio para el archivo de metrics
 #define LOG_PATH "/var/lib/monitoreo/metrics.log"
+#define BUFFER_LAST_METRIC 256
 
-static char lastMetric[256] =
-    "Aun no hay metricas"; // almacena la última métrica en formato NDJSON, y son aproximadamente 185 caracteres
+static char lastMetric[BUFFER_LAST_METRIC]; // almacena la última métrica en formato NDJSON,
+                                            // y son aproximadamente 185 caracteres
 // Pipe para comunicar la última métrica al proceso padre
 int pipe_fd; // descriptor de archivo del pipe
 
@@ -100,7 +101,6 @@ int main(int argc, char* argv[])
     // Destroy the mutex
     destroy_mutex();
     // El daemon del servidor HTTP se detiene al finalizar el programa
-    // return 0;
 }
 
 // http://localhost:3000/ (para ver las métricas en Grafana)

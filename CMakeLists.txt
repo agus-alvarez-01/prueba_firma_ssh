@@ -29,12 +29,14 @@ add_executable(${PROJECT_NAME}
     src/flags_bash.c
 	src/main.c
     src/shell_core.c
+    src/create_directory.c
 )
 # ejecuatble para monitoring
 add_executable(monitoring
     src/prom_metrics.c
 	src/get_metrics.c
     src/monitoring.c
+    src/create_directory.c
 )
 
 # Incluyo los headers de prometheus-client-c
@@ -81,24 +83,6 @@ add_executable(test_prom_metrics
     src/prom_metrics.c
 )
 
-# # Test main / shell functions
-# add_executable(test_main_funcs
-#     tests/test_main_funcs.c
-#     src/shell_core.c
-# )
-
-# set_target_properties(test_main_funcs PROPERTIES
-#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
-# )
-
-# target_include_directories(test_main_funcs PRIVATE include)
-# target_link_libraries(test_main_funcs PRIVATE unity::unity pthread)
-
-# add_test(
-#     NAME test_main_funcs
-#     COMMAND ${TEST_OUTPUT_DIR}/test_main_funcs
-# )
-
 set_target_properties(test_prom_metrics PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
 )
@@ -111,49 +95,83 @@ add_test(
     COMMAND ${TEST_OUTPUT_DIR}/test_prom_metrics
 )
 
-# # Test flags_bash (simple checks)
-# add_executable(test_flags_bash_simple
-#     tests/test_flags_bash_simple.c
-# )
+# Test main / shell functions
+add_executable(test_main_funcs
+    tests/test_main_funcs.c
+    src/shell_core.c
+    src/create_directory.c
+)
 
-# set_target_properties(test_flags_bash_simple PROPERTIES
-#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
-# )
+set_target_properties(test_main_funcs PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+)
 
-# target_include_directories(test_flags_bash_simple PRIVATE include)
-# target_link_libraries(test_flags_bash_simple PRIVATE unity::unity)
+target_include_directories(test_main_funcs PRIVATE include)
+target_link_libraries(test_main_funcs PRIVATE unity::unity pthread)
 
-# add_test(
-#     NAME test_flags_bash_simple
-#     COMMAND ${TEST_OUTPUT_DIR}/test_flags_bash_simple
-# )
+add_test(
+    NAME test_main_funcs
+    COMMAND ${TEST_OUTPUT_DIR}/test_main_funcs
+)
 
-# # Test create_directory
-# add_executable(test_create_directory
-#     tests/test_create_directory.c
-# )
+# Test flags_bash
+add_executable(test_flags_bash
+    tests/test_flags_bash.c
+    src/flags_bash.c
+)
 
-# set_target_properties(test_create_directory PROPERTIES
-#     RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
-# )
+set_target_properties(test_flags_bash PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+)
 
-# target_include_directories(test_create_directory PRIVATE include)
-# target_link_libraries(test_create_directory PRIVATE unity::unity)
+target_include_directories(test_flags_bash PRIVATE include)
+target_link_libraries(test_flags_bash PRIVATE unity::unity)
 
-# add_test(
-#     NAME test_create_directory
-#     COMMAND ${TEST_OUTPUT_DIR}/test_create_directory
-# )
+add_test(
+    NAME test_flags_bash
+    COMMAND ${TEST_OUTPUT_DIR}/test_flags_bash
+)
+
+# Test create_directory
+add_executable(test_create_directory
+    tests/test_create_directory.c
+    src/create_directory.c
+)
+
+set_target_properties(test_create_directory PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIR}
+)
+
+target_include_directories(test_create_directory PRIVATE include)
+target_link_libraries(test_create_directory PRIVATE unity::unity)
+
+add_test(
+    NAME test_create_directory
+    COMMAND ${TEST_OUTPUT_DIR}/test_create_directory
+)
+
 # Flags para coverage, solo para los ejecutables
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
     target_link_options(${PROJECT_NAME} PRIVATE -fprofile-arcs -ftest-coverage)
+
+    #target_compile_options(monitoring PRIVATE -fprofile-arcs -ftest-coverage)
+    #target_link_options(monitoring PRIVATE -fprofile-arcs -ftest-coverage)
 
     target_compile_options(test_get_metrics PRIVATE -fprofile-arcs -ftest-coverage)
     target_link_options(test_get_metrics PRIVATE -fprofile-arcs -ftest-coverage)
 
     target_compile_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
     target_link_options(test_prom_metrics PRIVATE -fprofile-arcs -ftest-coverage)
+
+    target_compile_options(test_main_funcs PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(test_main_funcs PRIVATE -fprofile-arcs -ftest-coverage)
+
+    target_compile_options(test_flags_bash PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(test_flags_bash PRIVATE -fprofile-arcs -ftest-coverage)
+
+    target_compile_options(test_create_directory PRIVATE -fprofile-arcs -ftest-coverage)
+    target_link_options(test_create_directory PRIVATE -fprofile-arcs -ftest-coverage)
 endif()
 
 # --- Limpieza automática de coverage ---
@@ -165,5 +183,9 @@ add_custom_target(prebuild_clean_coverage
 )
 
 add_dependencies(${PROJECT_NAME} prebuild_clean_coverage)
+#add_dependencies(monitoring prebuild_clean_coverage)
 add_dependencies(test_get_metrics prebuild_clean_coverage)
 add_dependencies(test_prom_metrics prebuild_clean_coverage)
+add_dependencies(test_main_funcs prebuild_clean_coverage)
+add_dependencies(test_flags_bash prebuild_clean_coverage)
+add_dependencies(test_create_directory prebuild_clean_coverage)

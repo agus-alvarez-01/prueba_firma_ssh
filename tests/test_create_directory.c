@@ -21,7 +21,6 @@ void test_create_directory(void)
     // debe existir y ser un directorio
     TEST_ASSERT_EQUAL_INT(0, res);
     TEST_ASSERT_TRUE(S_ISDIR(st.st_mode));
-    // cleanup
     rmdir(path);
 }
 

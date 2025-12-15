@@ -20,6 +20,7 @@ void startMonitoring();
 void stopMonitoring();
 void showLastMetric();
 void showStatus();
+void exitProgram();
 void* loggerDaemon(void* arg);
 
 #endif // SHELL_CORE_H
